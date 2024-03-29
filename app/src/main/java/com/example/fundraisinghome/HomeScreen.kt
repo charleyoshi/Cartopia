@@ -160,9 +160,9 @@ fun HomeScreen(navigateToScreenBrowseAll: ()-> Unit,
 @Composable
 fun FeaturedImage(currentIndex: Int) {
     val imageResource = when (currentIndex) {
-        0 -> R.drawable.feature_image1
-        1 -> R.drawable.feature_image2
-        else -> R.drawable.feature_image3
+        0 -> R.drawable.feature_image01
+        1 -> R.drawable.feature_image02
+        else -> R.drawable.feature_image03
     }
 
     Image(

@@ -26,14 +26,17 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +56,20 @@ fun BrowseScreen(
     navigateToscreenDetail: (Int)-> Unit,
 
 ) {
+    var searchText = remember { mutableStateOf("") }
+    // Filter the list of products based on the search text
+    val filteredProducts = if (searchText.value.isNotBlank()) {
+        products.filter { product ->
+            // Get the string value of the resource ID
+            val productName = stringResource(product.nameRes)
+            // Filter logic: Check if the product name contains the search text (case-insensitive)
+            productName.contains(searchText.value, ignoreCase = true)
+
+        }
+    } else {
+        // If search text is empty, show all products
+        products
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -81,11 +98,23 @@ fun BrowseScreen(
                 modifier = Modifier.weight(1f).padding(start = 18.dp)
             )
         }
+        // Search Bar
+        OutlinedTextField(
+            value = searchText.value,
+            onValueChange = { searchText.value = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            label = { Text("Search products") },
+            leadingIcon = {
+                Icon(Icons.Default.Search, contentDescription = "Search")
+            }
+        )
+
         // Products List
-        ProductsList(products = products, navigateToscreenDetail = navigateToscreenDetail)
+        ProductsList(products = filteredProducts, navigateToscreenDetail = navigateToscreenDetail)
     }
 }
-
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -121,7 +150,7 @@ fun ProductsList(
                 ProductListItem(
                     product = product,
                     itemIndex = index,
-                    navigateToscreenDetail =navigateToscreenDetail,
+                    navigateToscreenDetail = navigateToscreenDetail,
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         // Animate each list item to slide in vertically
@@ -139,6 +168,7 @@ fun ProductsList(
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

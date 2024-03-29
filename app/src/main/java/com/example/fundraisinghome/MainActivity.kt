@@ -148,9 +148,9 @@ class MainActivity : ComponentActivity() {
                                 navigateBack = { navController.popBackStack()}
                             )
                         }
-                        composable(route= Route.screenPayment){
-                            PaymentScreen {}
-                        }
+//                        composable(route= Route.screenPayment){
+//                            PaymentScreen {}
+//                        }
 
                     }
 
