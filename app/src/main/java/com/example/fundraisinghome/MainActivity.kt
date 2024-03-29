@@ -32,7 +32,8 @@ object Route {
     const val screenRegister = "screenRegister"
     const val screenCheckout = "screenCheckout"
     const val screenOrderHistory = "screenOrderHistory"
-    
+    const val screenPayment= "screenPayment"
+
 }
 
 
@@ -146,6 +147,9 @@ class MainActivity : ComponentActivity() {
                             OrderHistoryScreen(
                                 navigateBack = { navController.popBackStack()}
                             )
+                        }
+                        composable(route= Route.screenPayment){
+                            PaymentScreen {}
                         }
 
                     }
