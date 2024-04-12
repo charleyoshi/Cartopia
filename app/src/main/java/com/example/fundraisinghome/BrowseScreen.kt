@@ -57,18 +57,20 @@ fun BrowseScreen(
 
 ) {
     var searchText = remember { mutableStateOf("") }
-    // Filter the list of products based on the search text
+
+    val originalIndices = remember { products.indices.toList() }
+
     val filteredProducts = if (searchText.value.isNotBlank()) {
         products.filter { product ->
-            // Get the string value of the resource ID
             val productName = stringResource(product.nameRes)
-            // Filter logic: Check if the product name contains the search text (case-insensitive)
             productName.contains(searchText.value, ignoreCase = true)
-
         }
     } else {
-        // If search text is empty, show all products
         products
+    }
+
+    val filteredIndices = filteredProducts.map { product ->
+        originalIndices[products.indexOf(product)]
     }
     Column(
         modifier = modifier
@@ -112,7 +114,7 @@ fun BrowseScreen(
         )
 
         // Products List
-        ProductsList(products = filteredProducts, navigateToscreenDetail = navigateToscreenDetail)
+        ProductsList(products = filteredProducts, indices = filteredIndices, navigateToscreenDetail = navigateToscreenDetail)
     }
 }
 
@@ -121,6 +123,7 @@ fun BrowseScreen(
 @Composable
 fun ProductsList(
     products: List<Product>,
+    indices: List<Int>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     navigateToscreenDetail: (Int) -> Unit,
@@ -150,6 +153,7 @@ fun ProductsList(
                 ProductListItem(
                     product = product,
                     itemIndex = index,
+                    originalIndex = indices[index],
                     navigateToscreenDetail = navigateToscreenDetail,
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -174,14 +178,15 @@ fun ProductsList(
 @Composable
 fun ProductListItem(
     product: Product,
-    itemIndex:Int,
+    itemIndex: Int,
+    originalIndex: Int,
     modifier: Modifier = Modifier,
     navigateToscreenDetail: (Int) -> Unit,
 ) {
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier,
-        onClick = {navigateToscreenDetail(itemIndex)},// Make the card clickable
+        onClick = {navigateToscreenDetail(originalIndex)},// Make the card clickable
     ) {
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -216,17 +221,3 @@ fun ProductListItem(
     }
 }
 
-
-//@Preview("Light Theme")
-//@Preview("Dark Theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-//fun ProductListsPreview() {
-//    val product = Product(
-//        R.string.product1,
-//        R.string.product_description1,
-//        R.drawable.product1,
-//        R.string.product_price1
-//    )
-//        ProductListItem(product = product, navigateToscreenDetail = {} )
-//
-//}

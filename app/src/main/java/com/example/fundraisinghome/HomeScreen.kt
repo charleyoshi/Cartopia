@@ -227,7 +227,7 @@ fun HorizontalProductList(products: List<Product>, navigateToscreenDetail: (Int)
     ) {
         items(products.size) { index ->
             val product = products[index]
-            ProductListItem(product = product, itemIndex = index, navigateToscreenDetail = navigateToscreenDetail)
+            ProductListItem(product = product,originalIndex=index, itemIndex = index, navigateToscreenDetail = navigateToscreenDetail)
         }
     }
 }
