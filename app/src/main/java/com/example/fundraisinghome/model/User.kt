@@ -1,7 +1,11 @@
 package com.example.fundraisinghome.model
 
-data class User(
-    val userId: String, // also used for userId
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+@Entity(tableName = "user_table")
+data class User (
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val username: String,
-    val password: String // Note: Encrypt or hash the password before storing
+    val hashedPassword: String
 )

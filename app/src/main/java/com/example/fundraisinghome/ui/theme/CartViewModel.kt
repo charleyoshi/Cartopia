@@ -1,17 +1,21 @@
 package com.example.fundraisinghome.ui.theme
 
-import androidx.compose.animation.core.updateTransition
+import androidx.compose.runtime.MutableState
 import com.example.fundraisinghome.model.CartItem
 import com.example.fundraisinghome.model.Product
 import androidx.lifecycle.ViewModel
-import com.example.fundraisinghome.model.UserSingleton
+import androidx.lifecycle.viewModelScope
+import com.example.fundraisinghome.data.CartItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import java.io.IOException
 
 
-class CartViewModel : ViewModel() {
-    // Game UI state
+class CartViewModel(private val cartItemRepository: CartItemRepository) : ViewModel() {
+    // Cart UI state
     // Backing property to avoid state updates from other classes
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
@@ -19,82 +23,62 @@ class CartViewModel : ViewModel() {
     private val _cartItems = mutableListOf<CartItem>()
 
     init {
-        UserSingleton.setCartViewModel(this)
+        updateUiState()
     }
+
+
 
     // Function to reset the cart
     fun resetCart() {
-        _cartItems.clear()
-        updateUiState()
+        viewModelScope.launch {
+            cartItemRepository.clearCart()
+            updateUiState()
+        }
     }
 
 
     fun addToCart(product: Product, quantity: Int) {
-        val currentUser = UserSingleton.getCurrentUser()
-        if (currentUser != null) {
-            val userId = currentUser.userId
-            // Check if the product already exists in the cart for this user
-            val existingCartItem = _cartItems.find { it.userId == userId && it.product == product }
-
-            if (existingCartItem != null) {
-                // If the product already exists, update the quantity
-                existingCartItem.quantity += quantity
-            } else {
-                // If the product does not exist, add it to the cart
-                _cartItems.add(CartItem(userId, product, quantity))
-            }
-
-            // Update the UI state after modifying the cart items
-            updateUiState(userId)
-        } else {
-            // Handle the case when no user is logged in
+        viewModelScope.launch {
+            cartItemRepository.addToCart(product, quantity)
+            updateUiState()
         }
+
     }
 
     // Function to increase the quantity of a cart item
     fun increaseQuantity(cartItem: CartItem) {
-        cartItem.quantity++
-        updateUiState()
-    }
-    // Function to decrease the quantity of a cart item
-    fun decreaseQuantity(cartItem: CartItem, onDeleteItem: () -> Unit) {
-        if (cartItem.quantity > 1) {
-            cartItem.quantity--
+        viewModelScope.launch {
+            cartItemRepository.increaseQuantity(cartItem)
             updateUiState()
-        } else {
-            // Show confirmation dialog
-            // Pass onDeleteItem callback to the dialog
-            // This callback will be called when the user confirms deletion
-            onDeleteItem()
         }
     }
 
-    // Function to delete an item from the cart
+
+    // Function to decrease the quantity of a cart item
+    fun decreaseQuantity(cartItem: CartItem) {
+        viewModelScope.launch {
+            if (cartItem.quantity > 1) {
+                cartItemRepository.decreaseQuantity(cartItem)
+                updateUiState()
+            }
+        }
+    }
+
     fun deleteItem(cartItem: CartItem) {
-        _cartItems.remove(cartItem)
-        updateUiState()
+        viewModelScope.launch {
+            cartItemRepository.deleteCartItem(cartItem)
+            updateUiState()
+        }
     }
 
 
     fun updateUiState(userId: String="") {
-        val currentUser = UserSingleton.getCurrentUser()
-        if (currentUser != null) {
-            _uiState.value =
-                CartUiState(items = getCartItemsForUser(currentUser.userId), totalPrice = calculateTotalPrice(currentUser.userId))
+        viewModelScope.launch {
+            val cartItems = cartItemRepository.getCartItemsForCurrentUser()
+            val totalPrice = cartItemRepository.calculateTotalPrice()
+            _uiState.value = CartUiState(items = cartItems, totalPrice = totalPrice)
         }
     }
 
-    private fun calculateTotalPrice(userId: String): Double {
-        val itemsForUser = getCartItemsForUser(userId)
-        return itemsForUser.sumByDouble { it.product.price * it.quantity }
-    }
 
-
-
-
-    private fun getCartItemsForUser(userId: String): List<CartItem> {
-        // Filter the cart items based on the provided userId
-//        _uiState.value = CartUiState(items = _cartItems.filter { it.userId == userId })
-        return _cartItems.filter { it.userId == userId }
-    }
 }
